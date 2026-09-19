@@ -25,6 +25,19 @@ input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #7c3aed18}
 .profit{margin-top:15px;padding:20px;border-radius:13px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;display:flex;justify-content:space-between;align-items:center;transition:.2s}.profit.loss{background:linear-gradient(135deg,#dc2626,#991b1b)}
 .profit span{font-weight:800}.profit strong{font-size:28px}.note{font-size:11px;color:var(--muted);margin-top:12px}
 @media(max-width:650px){.grid,.metrics{grid-template-columns:1fr}.header h1{font-size:24px}.profit{flex-direction:column;gap:7px;align-items:flex-start}}
+
+.orders-grid label{font-size:13px}
+.orders-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+@media(max-width:650px){
+  .orders-grid{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+}
 </style>
 </head>
 <body>
@@ -37,7 +50,7 @@ input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #7c3aed18}
   <div class="card">
     <h2 class="section-title">📦 Orders</h2>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    <div class="orders-grid">
       <div>
         <label>Total Orders</label>
         <input id="orders" type="number" min="0" value="100">
