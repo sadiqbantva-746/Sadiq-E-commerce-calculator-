@@ -20,6 +20,7 @@ input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #7c3aed18}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
 .metric{background:var(--soft);border:1px solid var(--border);border-radius:11px;padding:13px;text-align:center}
 .metric span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.metric strong{font-size:20px;color:var(--primary)}
+.metric small{display:block;margin-top:6px;font-size:12px;font-weight:800;color:#5b21b6}
 .breakdown{margin-top:5px}.row{display:flex;justify-content:space-between;gap:15px;padding:11px 4px;border-bottom:1px solid #eee;font-size:15px}.row:last-child{border-bottom:0}.row b{font-weight:900}
 .profit{margin-top:15px;padding:20px;border-radius:13px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;display:flex;justify-content:space-between;align-items:center}
 .profit span{font-weight:800}.profit strong{font-size:28px}.note{font-size:11px;color:var(--muted);margin-top:12px}
@@ -35,16 +36,43 @@ input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #7c3aed18}
 
   <div class="card">
     <h2 class="section-title">📦 Orders</h2>
-    <div class="grid">
-      <div><label>Total Orders</label><input id="orders" type="number" min="0" value="100"></div>
-      <div><label>Confirm Orders</label><input id="confirmed" type="number" min="0" value="80"></div>
-      <div><label>Delivered Orders</label><input id="delivered" type="number" min="0" value="70"></div>
-      <div><label>Return Orders (Auto)</label><input id="returns" type="number" min="0" value="10" readonly style="background:#f5f3ff;cursor:not-allowed"></div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      <div>
+        <label>Total Orders</label>
+        <input id="orders" type="number" min="0" value="100">
+      </div>
+
+      <div>
+        <label>Confirm Orders</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <button type="button" id="confirmCountBtn" onclick="setInputMode('confirm','count')" style="flex:1;height:32px;border:1px solid #ddd6fe;border-radius:7px;background:#7c3aed;color:#fff;font-size:11px;font-weight:800;cursor:pointer">Number</button>
+          <button type="button" id="confirmPercentBtn" onclick="setInputMode('confirm','percent')" style="flex:1;height:32px;border:1px solid #ddd6fe;border-radius:7px;background:#fff;color:#5b21b6;font-size:11px;font-weight:800;cursor:pointer">Percentage</button>
+        </div>
+        <input id="confirmed" type="number" min="0" value="90">
+        <div id="confirmHint" class="note" style="margin-top:5px">Actual confirmed orders enter karo.</div>
+      </div>
+
+      <div>
+        <label>Delivered Orders</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <button type="button" id="deliveredCountBtn" onclick="setInputMode('delivered','count')" style="flex:1;height:32px;border:1px solid #ddd6fe;border-radius:7px;background:#7c3aed;color:#fff;font-size:11px;font-weight:800;cursor:pointer">Number</button>
+          <button type="button" id="deliveredPercentBtn" onclick="setInputMode('delivered','percent')" style="flex:1;height:32px;border:1px solid #ddd6fe;border-radius:7px;background:#fff;color:#5b21b6;font-size:11px;font-weight:800;cursor:pointer">Percentage</button>
+        </div>
+        <input id="delivered" type="number" min="0" value="60">
+        <div id="deliveredHint" class="note" style="margin-top:5px">Actual delivered orders enter karo.</div>
+      </div>
     </div>
+
     <div class="metrics">
-      <div class="metric"><span>Confirmation Ratio</span><strong id="confirmRatio">80.0%</strong></div>
-      <div class="metric"><span>Delivery Ratio</span><strong id="deliveryRatio">87.5%</strong></div>
-      <div class="metric"><span>Return Ratio</span><strong id="returnRatio">12.5%</strong></div>
+      <div class="metric"><span>Confirmation Ratio</span><strong id="confirmRatio">90.0%</strong><small id="confirmCount">90 Confirmed</small></div>
+      <div class="metric"><span>Delivery Ratio</span><strong id="deliveryRatio">66.7%</strong><small id="deliveryCount">60 Delivered</small></div>
+      <div class="metric"><span>Return Ratio</span><strong id="returnRatio">33.3%</strong><small id="returnCount">30 Returned</small></div>
+    </div>
+
+    <div class="note">
+      Confirm Orders: Percentage mode mein % <b>Total Orders</b> ka hoga, aur neeche calculated Confirmed Orders bhi show honge.<br>
+      Delivered Orders: Percentage mode mein % <b>Confirmed Orders</b> ka hoga, aur neeche calculated Delivered/Returned Orders bhi show honge. Number mode mein actual orders enter karein.
     </div>
   </div>
 
@@ -84,23 +112,83 @@ input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #7c3aed18}
 </div>
 
 <script>
+const inputModes={confirm:'count',delivered:'count'};
+
 const ids=['orders','confirmed','delivered','selling','product','courier','marketing','packing','codTax'];
 const $=id=>document.getElementById(id);
 const num=id=>Math.max(0,Number($(id).value)||0);
 const money=n=>'Rs '+Math.round(n).toLocaleString('en-PK');
 
+function setInputMode(type,mode){
+  inputModes[type]=mode;
+
+  const prefix=type==='confirm'?'confirm':'delivered';
+  const countBtn=$(prefix+'CountBtn');
+  const percentBtn=$(prefix+'PercentBtn');
+
+  countBtn.style.background=mode==='count'?'#7c3aed':'#fff';
+  countBtn.style.color=mode==='count'?'#fff':'#5b21b6';
+  percentBtn.style.background=mode==='percent'?'#7c3aed':'#fff';
+  percentBtn.style.color=mode==='percent'?'#fff':'#5b21b6';
+
+  const input=$(type==='confirm'?'confirmed':'delivered');
+  input.value=mode==='percent'
+    ? (type==='confirm'?90:60)
+    : (type==='confirm'?90:60);
+
+  $(prefix+'Hint').textContent=mode==='percent'
+    ? (type==='confirm'
+        ? 'Total Orders ka % enter karo. Example: 100 orders × 90% = 90 confirmed.'
+        : 'Confirmed Orders ka % enter karo. Example: 90 confirmed × 60% = 54 delivered.')
+    : (type==='confirm'
+        ? 'Actual confirmed orders enter karo.'
+        : 'Actual delivered orders enter karo.');
+
+  calc();
+}
+
+function getOrderValues(){
+  const orders=num('orders');
+
+  let confirmed;
+  if(inputModes.confirm==='percent'){
+    confirmed=orders*(Math.min(100,num('confirmed'))/100);
+  }else{
+    confirmed=num('confirmed');
+  }
+  confirmed=Math.min(orders,confirmed);
+
+  let delivered;
+  if(inputModes.delivered==='percent'){
+    delivered=confirmed*(Math.min(100,num('delivered'))/100);
+  }else{
+    delivered=num('delivered');
+  }
+  delivered=Math.min(confirmed,delivered);
+
+  return {orders,confirmed,delivered};
+}
+
 function calc(){
-  const orders=num('orders'), confirmed=num('confirmed'), delivered=num('delivered');
+  const o=getOrderValues();
+  const orders=o.orders;
+  const confirmed=o.confirmed;
+  const delivered=o.delivered;
   const returns=Math.max(0,confirmed-delivered);
   const codTaxRate=Math.max(0,num('codTax'));
-  $('returns').value=returns;
 
-  const selling=num('selling'), product=num('product'), courier=num('courier');
-  const marketing=num('marketing'), packing=num('packing');
+  const selling=num('selling');
+  const product=num('product');
+  const courier=num('courier');
+  const marketing=num('marketing');
+  const packing=num('packing');
 
   $('confirmRatio').textContent=(orders?confirmed/orders*100:0).toFixed(1)+'%';
   $('deliveryRatio').textContent=(confirmed?delivered/confirmed*100:0).toFixed(1)+'%';
   $('returnRatio').textContent=(confirmed?returns/confirmed*100:0).toFixed(1)+'%';
+  $('confirmCount').textContent=Math.round(confirmed).toLocaleString('en-PK')+' Confirmed';
+  $('deliveryCount').textContent=Math.round(delivered).toLocaleString('en-PK')+' Delivered';
+  $('returnCount').textContent=Math.round(returns).toLocaleString('en-PK')+' Returned';
 
   const sales=delivered*selling;
   const productTotal=delivered*product;
@@ -115,7 +203,7 @@ function calc(){
 
   $('sales').textContent=money(sales);
   $('productTotal').textContent=money(productTotal);
-  $('returnedStock').textContent=returns.toLocaleString('en-PK')+' Units';
+  $('returnedStock').textContent=Math.round(returns).toLocaleString('en-PK')+' Units';
   $('returnedStockValue').textContent=money(returns*product);
   $('courierTotal').textContent=money(courierTotal);
   $('marketingTotal').textContent=money(marketingTotal);
@@ -127,8 +215,14 @@ function calc(){
 
   $('netLabel').textContent=profit<0?'📉 Net Loss':profit>0?'💰 Net Profit':'Net';
 }
-ids.forEach(id=>$(id).addEventListener('input',calc));
-calc();
+
+ids.forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('input',calc);
+});
+
+setInputMode('confirm','count');
+setInputMode('delivered','count');
 </script>
 </body>
 </html>
